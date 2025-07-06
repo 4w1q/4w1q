@@ -68,7 +68,8 @@ async def tier_show(interaction: discord.Interaction):
     embed = discord.Embed(title="📊 Tier Listesi", color=discord.Color.blurple())
     for rid, uids in data[gid].items():
         role = interaction.guild.get_role(int(rid))
-        if not role: continue
+        if not role:
+            continue
         mentions = []
         for u in uids:
             m = interaction.guild.get_member(int(u))
@@ -215,5 +216,9 @@ async def ticket_close(interaction: discord.Interaction, ticket: discord.TextCha
     await ticket.delete(reason=f"Ticket kapatıldı: {interaction.user}")
     await interaction.response.send_message(f"✅ {ticket.name} kapatıldı.", ephemeral=True)
 
-# 🔐 BOT TOKEN'INI BURAYA YAPIŞTIR
-client.run("MTM5MTE3Mzc0NzE4ODE3NDkwOA.GeZ_Kb.L250pV_bXCh5NpwMykV_Zta593EESaWvDpoeyo")
+# ——— BOTU BAŞLAT ———
+if __name__ == "__main__":
+    token = os.getenv("MTM5MTE3Mzc0NzE4ODE3NDkwOA.Gma0vO.oZ4_5WYPjI9qIo9xmNqrZkQrMKwDf83keUpnvw")      # Ortam değişkenine TOKEN=... ekle
+    if not token:
+        raise RuntimeError("TOKEN ortam değişkeni tanımlı değil!")
+    client.run(token)
