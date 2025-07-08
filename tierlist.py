@@ -26,58 +26,44 @@ def save_data(data):
 
 @client.event
 async def on_ready():
+    # panel mesajları üzerindeki butonları her zaman dinleyecek şekilde kaydet
+    client.add_view(TicketPanel())
     await client.tree.sync()
     print(f"✅ Bot giriş yaptı: {client.user}")
 
 # ————— Tier komutları —————
 
 @client.tree.command(name="tier_remove", description="Kullanıcıyı tier'dan çıkar ve rolünü al.")
-@app_commands.describe(
-    kullanıcı="Silinecek kullanıcı",
-    rol="Silinecek rol"
-)
+@app_commands.describe(kullanıcı="Silinecek kullanıcı", rol="Silinecek rol")
 async def tier_remove(interaction: discord.Interaction, kullanıcı: discord.Member, rol: discord.Role):
-    # Yetki kontrolü: sadece Tester rolü
     if not any(r.name.lower() == "tester" for r in interaction.user.roles):
         return await interaction.response.send_message(
-            "❌ Bu komutu sadece **Tester** rolüne sahip kullanıcılar kullanabilir.",
-            ephemeral=True
+            "❌ Bu komutu sadece **Tester** rolüne sahip kullanıcılar kullanabilir.", ephemeral=True
         )
 
-    data = load_data()
-    gid = str(interaction.guild_id)
-    rid = str(rol.id)
+    data = load_data(); gid = str(interaction.guild_id); rid = str(rol.id)
     if gid not in data or rid not in data[gid] or str(kullanıcı.id) not in data[gid][rid]:
         return await interaction.response.send_message(
-            f"{kullanıcı.mention} `{rol.name}` tier'ında bulunamadı.",
-            ephemeral=True
+            f"{kullanıcı.mention} `{rol.name}` tier'ında bulunamadı.", ephemeral=True
         )
 
-    data[gid][rid].remove(str(kullanıcı.id))
-    save_data(data)
-
+    data[gid][rid].remove(str(kullanıcı.id)); save_data(data)
     if rol in kullanıcı.roles:
-        await kullanıcı.remove_roles(rol)
-        mesaj = f"`{rol.name}` rolü kaldırıldı."
+        await kullanıcı.remove_roles(rol); mesaj = f"`{rol.name}` rolü kaldırıldı."
     else:
         mesaj = f"`{rol.name}` kullanıcıda zaten yoktu."
-
-    await interaction.response.send_message(
-        f"{kullanıcı.mention} `{rol.name}` tier'ından çıkarıldı. {mesaj}"
-    )
+    await interaction.response.send_message(f"{kullanıcı.mention} `{rol.name}` tier'ından çıkarıldı. {mesaj}")
 
 @client.tree.command(name="tier_show", description="Tüm tier listesini gösterir.")
 async def tier_show(interaction: discord.Interaction):
-    data = load_data()
-    gid = str(interaction.guild_id)
+    data = load_data(); gid = str(interaction.guild_id)
     if gid not in data or not data[gid]:
         return await interaction.response.send_message("Sunucuda kayıtlı tier verisi yok.", ephemeral=True)
 
     embed = discord.Embed(title="📊 Tier Listesi", color=discord.Color.blurple())
     for rid, uids in data[gid].items():
         role = interaction.guild.get_role(int(rid))
-        if not role:
-            continue
+        if not role: continue
         mentions = [
             interaction.guild.get_member(int(u)).mention
             for u in uids
@@ -118,24 +104,20 @@ async def tierver(
     winner: discord.Member,
     channel: discord.TextChannel
 ):
-    # Yetki kontrolü
     if not any(r.name.lower() == "tester" for r in interaction.user.roles):
         return await interaction.response.send_message("❌ Bu komutu sadece `Tester` rolü kullanabilir.", ephemeral=True)
 
-    # Veritabanına ekle
-    data = load_data()
-    gid = str(interaction.guild_id)
-    tid = str(new_tier.id)
+    # veritabanına ekleme
+    data = load_data(); gid = str(interaction.guild_id); tid = str(new_tier.id)
     data.setdefault(gid, {}).setdefault(tid, [])
     if str(user.id) not in data[gid][tid]:
-        data[gid][tid].append(str(user.id))
-        save_data(data)
+        data[gid][tid].append(str(user.id)); save_data(data)
 
-    # Yeni tier rolünü ver
+    # rol verme
     if new_tier not in user.roles:
         await user.add_roles(new_tier)
 
-    # Rapor embed
+    # rapor embed
     title = f"🏆 {player_name} {kit} Test Sonuçları:"
     embed = discord.Embed(title=title, color=discord.Color.orange())
     embed.add_field(name="Discord:", value=user.mention, inline=True)
@@ -154,7 +136,7 @@ async def tierver(
 
 class TicketPanel(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=None)  # timeout=None => butonlar hiç kapanmaz
 
     async def _create_ticket(self, interaction: discord.Interaction, kit_name: str):
         # kategori adını case-insensitive ara
